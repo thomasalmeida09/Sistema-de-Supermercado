@@ -3,62 +3,74 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Caixa de Mercado</title>
+  <title>Mercado</title>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <h1>Caixa de Mercado</h1>
+  <div class="container">
+    <!-- Cadastro de Produto -->
+    <section id="cadastro">
+      <h2>Cadastrar Produto</h2>
+      <input type="text" id="nomeProduto" placeholder="Nome do Produto">
+      <input type="number" id="precoProduto" placeholder="Preço (R$)" step="0.01">
+      <input type="number" id="estoqueProduto" placeholder="Estoque" min="1">
+      <button id="btnCadastrar">Cadastrar</button>
+    </section>
 
-  <a href="pagamento.html">Ir para pagamento</a>
+    <!-- Lista de Produtos -->
+    <section id="produtos">
+      <h2>Produtos Disponíveis</h2>
+      <ul id="listaProdutos"></ul>
+    </section>
 
-  <section>
-    <h2>Cadastro de Produto</h2>
-    <form id="formProduto">
-      <input type="text" id="nomeProduto" placeholder="Nome do produto" required />
-      <input type="number" id="precoProduto" placeholder="Preço" step="0.01" required />
-      <button type="submit">Adicionar</button>
-    </form>
-  </section>
+    <!-- Carrinho -->
+    <section id="carrinho">
+      <h2>Carrinho</h2>
+      <ul id="listaCarrinho"></ul>
+      <p>Total: R$ <span id="total">0.00</span></p>
+      <button id="btnFinalizar">Finalizar Compra</button>
+    </section>
+  </div>
 
-  <section>
-    <h2>Lista de Produtos</h2>
-    <table id="tabelaProdutos">
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Preço</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
+  <!-- Modal Pagamento -->
+  <div id="modalPagamento" class="modal">
+    <div class="modal-content">
+      <h3>Escolha o método de pagamento</h3>
+      <select id="metodoPagamento">
+        <option value="">Selecione...</option>
+        <option value="pix">PIX</option>
+        <option value="debito">Cartão de Débito</option>
+        <option value="credito">Cartão de Crédito</option>
+      </select>
 
-  <section>
-    <h2>Registrar Venda</h2>
-    <form id="formVenda">
-      <select id="produtoVenda"></select>
-      <input type="number" id="quantidadeVenda" placeholder="Quantidade" min="1" required />
-      <button type="submit">Registrar Venda</button>
-    </form>
-  </section>
+      <!-- PIX -->
+      <div id="pagPix" class="pagamento-opcao">
+        <p>Escaneie o QR Code para pagar:</p>
+        <img src="https://api.qrserver.com/v1/create-qr-code/?data=PagamentoPix&size=150x150" alt="QR Code PIX">
+      </div>
 
-  <section>
-    <h2>Histórico de Vendas</h2>
-    <table id="tabelaVendas">
-      <thead>
-        <tr>
-          <th>Produto</th>
-          <th>Quantidade</th>
-          <th>Preço Total</th>
-          <th>Data</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
+      <!-- Cartão -->
+      <div id="pagCartao" class="pagamento-opcao">
+        <input type="text" id="numeroCartao" placeholder="Número do Cartão">
+        <input type="text" id="validadeCartao" placeholder="Validade (MM/AA)">
+        <input type="text" id="cvvCartao" placeholder="CVV">
+        <input type="text" id="nomeCartao" placeholder="Nome no Cartão">
+      </div>
+
+      <button id="btnPagar">Confirmar Pagamento</button>
+      <button id="btnFechar">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Modal Nota Fiscal -->
+  <div id="modalNota" class="modal">
+    <div class="modal-content">
+      <h3>Nota Fiscal</h3>
+      <div id="notaConteudo"></div>
+      <button id="btnFecharNota">Fechar</button>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
 </html>
-  

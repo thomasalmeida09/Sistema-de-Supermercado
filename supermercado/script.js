@@ -1,124 +1,123 @@
-// ========== PRODUTOS ==========
+const listaProdutos = document.getElementById("listaProdutos");
+const listaCarrinho = document.getElementById("listaCarrinho");
+const totalSpan = document.getElementById("total");
 
-async function carregarProdutos() {
-  const resp = await fetch("produtos.php?acao=listar");
-  const data = await resp.json();
-  produtos = data;
-  renderizarProdutos();
-}
+let produtos = [];
+let carrinho = [];
 
-function renderizarProdutos() {
-  const tabela = document.querySelector("#tabelaProdutos tbody");
-  tabela.innerHTML = "";
-
-  produtos.forEach((produto) => {
-    const linha = document.createElement("tr");
-
-    linha.innerHTML = `
-      <td>${produto.nome}</td>
-      <td>R$ ${parseFloat(produto.preco).toFixed(2)}</td>
-      <td>
-        <button class="excluir" onclick="excluirProduto(${produto.id})">Excluir</button>
-      </td>
-    `;
-
-    tabela.appendChild(linha);
-  });
-
-  atualizarSelectProdutos();
-}
-
-function atualizarSelectProdutos() {
-  const select = document.getElementById("produtoVenda");
-  select.innerHTML = "";
-  produtos.forEach((produto) => {
-    const option = document.createElement("option");
-    option.value = produto.id;
-    option.textContent = `${produto.nome} - R$ ${parseFloat(produto.preco).toFixed(2)}`;
-    select.appendChild(option);
-  });
-}
-
-document.getElementById("formProduto").addEventListener("submit", async function (e) {
-  e.preventDefault();
+document.getElementById("btnCadastrar").addEventListener("click", () => {
   const nome = document.getElementById("nomeProduto").value;
-  const preco = document.getElementById("precoProduto").value;
+  const preco = parseFloat(document.getElementById("precoProduto").value);
+  const estoque = parseInt(document.getElementById("estoqueProduto").value);
 
-  const formData = new FormData();
-  formData.append("nome", nome);
-  formData.append("preco", preco);
-
-  await fetch("produtos.php?acao=adicionar", {
-    method: "POST",
-    body: formData
-  });
-
-  e.target.reset();
-  carregarProdutos();
+  if (nome && preco > 0 && estoque > 0) {
+    produtos.push({ nome, preco, estoque });
+    atualizarProdutos();
+    document.getElementById("nomeProduto").value = "";
+    document.getElementById("precoProduto").value = "";
+    document.getElementById("estoqueProduto").value = "";
+  } else {
+    alert("Preencha todos os campos corretamente!");
+  }
 });
 
-async function excluirProduto(id) {
-  if (confirm("Deseja excluir este produto?")) {
-    const formData = new FormData();
-    formData.append("id", id);
+function atualizarProdutos() {
+  listaProdutos.innerHTML = "";
+  produtos.forEach((p, index) => {
+    const li = document.createElement("li");
+    li.textContent = `${p.nome} - R$${p.preco.toFixed(2)} (Estoque: ${p.estoque})`;
 
-    await fetch("produtos.php?acao=excluir", {
-      method: "POST",
-      body: formData
-    });
+    const btn = document.createElement("button");
+    btn.textContent = "Adicionar";
+    btn.onclick = () => adicionarCarrinho(index);
 
-    carregarProdutos();
+    li.appendChild(btn);
+    listaProdutos.appendChild(li);
+  });
+}
+
+function adicionarCarrinho(index) {
+  if (produtos[index].estoque > 0) {
+    produtos[index].estoque--;
+    carrinho.push(produtos[index]);
+    atualizarProdutos();
+    atualizarCarrinho();
+  } else {
+    alert("Produto sem estoque!");
   }
 }
 
-// ========== VENDAS ==========
+function atualizarCarrinho() {
+  listaCarrinho.innerHTML = "";
+  let total = 0;
+  carrinho.forEach((c, i) => {
+    const li = document.createElement("li");
+    li.textContent = `${c.nome} - R$${c.preco.toFixed(2)}`;
 
-async function carregarVendas() {
-  const resp = await fetch("vendas.php?acao=listar");
-  const data = await resp.json();
-  vendas = data;
-  renderizarVendas();
+    const btn = document.createElement("button");
+    btn.textContent = "Remover";
+    btn.onclick = () => {
+      carrinho.splice(i, 1);
+      c.estoque++;
+      atualizarProdutos();
+      atualizarCarrinho();
+    };
+
+    li.appendChild(btn);
+    listaCarrinho.appendChild(li);
+    total += c.preco;
+  });
+  totalSpan.textContent = total.toFixed(2);
 }
 
-function renderizarVendas() {
-  const tabela = document.querySelector("#tabelaVendas tbody");
-  tabela.innerHTML = "";
+// Modal pagamento
+const modalPagamento = document.getElementById("modalPagamento");
+document.getElementById("btnFinalizar").onclick = () => {
+  if (carrinho.length === 0) {
+    alert("Carrinho vazio!");
+    return;
+  }
+  modalPagamento.style.display = "flex";
+};
 
-  vendas.forEach((venda) => {
-    const linha = document.createElement("tr");
+document.getElementById("btnFechar").onclick = () => {
+  modalPagamento.style.display = "none";
+};
 
-    linha.innerHTML = `
-      <td>${venda.produto}</td>
-      <td>${venda.quantidade}</td>
-      <td>R$ ${parseFloat(venda.preco_total).toFixed(2)}</td>
-      <td>${new Date(venda.data_venda).toLocaleString()}</td>
-    `;
-
-    tabela.appendChild(linha);
-  });
-}
-
-document.getElementById("formVenda").addEventListener("submit", async function (e) {
-  e.preventDefault();
-  const produto_id = document.getElementById("produtoVenda").value;
-  const quantidade = document.getElementById("quantidadeVenda").value;
-
-  const formData = new FormData();
-  formData.append("produto_id", produto_id);
-  formData.append("quantidade", quantidade);
-
-  await fetch("vendas.php?acao=registrar", {
-    method: "POST",
-    body: formData
-  });
-
-  e.target.reset();
-  carregarVendas();
+// Mostrar métodos
+document.getElementById("metodoPagamento").addEventListener("change", (e) => {
+  document.querySelectorAll(".pagamento-opcao").forEach(div => div.style.display = "none");
+  if (e.target.value === "pix") {
+    document.getElementById("pagPix").style.display = "block";
+  } else if (e.target.value === "debito" || e.target.value === "credito") {
+    document.getElementById("pagCartao").style.display = "block";
+  }
 });
 
-// ========== INICIALIZAÇÃO ==========
-let produtos = [];
-let vendas = [];
+// Confirmar pagamento
+const modalNota = document.getElementById("modalNota");
+document.getElementById("btnPagar").onclick = () => {
+  const metodo = document.getElementById("metodoPagamento").value;
+  if (!metodo) {
+    alert("Selecione um método de pagamento!");
+    return;
+  }
 
-carregarProdutos();
-carregarVendas();
+  modalPagamento.style.display = "none";
+  gerarNota(metodo);
+};
+
+function gerarNota(metodo) {
+  const notaDiv = document.getElementById("notaConteudo");
+  notaDiv.innerHTML = "<ul>" + carrinho.map(c => `<li>${c.nome} - R$${c.preco.toFixed(2)}</li>`).join("") + "</ul>";
+  notaDiv.innerHTML += `<p><strong>Total:</strong> R$${totalSpan.textContent}</p>`;
+  notaDiv.innerHTML += `<p><strong>Pagamento:</strong> ${metodo.toUpperCase()}</p>`;
+
+  modalNota.style.display = "flex";
+  carrinho = [];
+  atualizarCarrinho();
+}
+
+document.getElementById("btnFecharNota").onclick = () => {
+  modalNota.style.display = "none";
+};
